@@ -715,6 +715,7 @@ class IssueStream(JiraStream):
 
     schema = PropertiesList(
         Property("expand", StringType),
+        Property("changelog", StringType),
         Property("id", StringType),
         Property("self", StringType),
         Property("key", StringType),
@@ -2285,6 +2286,8 @@ class IssueStream(JiraStream):
         params: dict = {}
 
         params["maxResults"] = self.config.get("page_size", {}).get("issues", 10)
+
+        params["expand"] = "changelog"
 
         params["jql"] = []  # init a query param
 
