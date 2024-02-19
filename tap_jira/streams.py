@@ -715,6 +715,7 @@ class IssueStream(JiraStream):
 
     schema = PropertiesList(
         Property("expand", StringType),
+        Property("changelog", StringType),
         Property("id", StringType),
         Property("self", StringType),
         Property("key", StringType),
@@ -2286,6 +2287,8 @@ class IssueStream(JiraStream):
 
         params["maxResults"] = self.config.get("page_size", {}).get("issues", 10)
 
+        params["expand"] = "changelog"
+
         params["jql"] = []  # init a query param
 
         if next_page_token:
@@ -3001,6 +3004,7 @@ class SprintStream(JiraStream):
 
     name = "sprints"
     parent_stream_type = BoardStream
+    state_partitioning_keys = []
     path = "/board/{board_id}/sprint?maxResults=100"
     replication_method = "INCREMENTAL"
     replication_key = "id"
@@ -3634,6 +3638,7 @@ class IssueWatchersStream(JiraStream):
     name = "issue_watchers"
     path = "/issue/{issue_id}/watchers"
     parent_stream_type = IssueStream
+    state_partitioning_keys = []
     ignore_parent_replication_keys = True
     primary_keys = ["id"]
     records_jsonpath = "$[*]"  # Or override `parse_response`.
@@ -3679,6 +3684,8 @@ class IssueChangeLogStream(JiraStream):
     name = "issue_changelog"
 
     parent_stream_type = IssueStream
+
+    state_partitioning_keys = []
 
     ignore_parent_replication_keys = True
 
@@ -3738,6 +3745,8 @@ class IssueComments(JiraStream):
     name = "issue_comments"
 
     parent_stream_type = IssueStream
+
+    state_partitioning_keys = []
 
     ignore_parent_replication_keys = True
 
@@ -3823,6 +3832,8 @@ class IssueWorklogs(JiraStream):
     name = "issue_worklogs"
 
     parent_stream_type = IssueStream
+
+    state_partitioning_keys = []
 
     ignore_parent_replication_keys = True
 
