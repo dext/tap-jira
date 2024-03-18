@@ -2276,6 +2276,12 @@ class IssueStream(JiraStream):
                 Property("customfield_12787", DateTimeType), #  First Response
                 Property("customfield_12852", base_item_schema), # Allocation
                 Property("customfield_13009", ArrayType(base_item_schema)), # Ignore Looker
+                Property("customfield_13169", StringType), # Work Days
+                Property("customfield_13341", NumberType), # Number of Comments
+                Property("customfield_13342", DateTimeType), # Last Comment Date
+                Property("customfield_13194", StringType), # Start Date
+                Property("customfield_13195", StringType), # Estimated delivery date
+                Property("customfield_13334", StringType), # Committed Quarter
             ),
         ),
         Property("created", StringType),
