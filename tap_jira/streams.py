@@ -2273,6 +2273,7 @@ class IssueStream(JiraStream):
                 Property("customfield_11504", base_item_schema),
                 Property("customfield_11616", NumberType),
                 # The fields below are specific to our Jira instance
+                Property("customfield_12726", NumberType), # Story point estimate
                 Property("customfield_12787", DateTimeType), #  First Response
                 Property("customfield_12852", base_item_schema), # Allocation
                 Property("customfield_13009", ArrayType(base_item_schema)), # Ignore Looker
