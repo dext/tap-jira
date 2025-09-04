@@ -385,7 +385,7 @@ class IssueStream(JiraStream):
     """
 
     name = "issues"
-    path = "/search"
+    path = "/search/jql"
     primary_keys = ["id"]
     replication_key = "id"
     replication_method = "INCREMENTAL"
@@ -2330,37 +2330,6 @@ class IssueStream(JiraStream):
         """Return a context dictionary for child streams."""
         return {"issue_id": record["id"]}
 
-    def post_process(self, row: dict, context: dict | None = None) -> dict | None:
-        # dafault value for array, would remove once handled at SDK level
-        for key_set_default in [
-            "customfield_10010",
-            "customfield_10005",
-            "customfield_10001",
-            "customfield_10000",
-            "customfield_11379",
-            "customfield_11378",
-            "customfield_11481",
-            "customfield_11481",
-            "customfield_11100",
-            "customfield_11450",
-            "customfield_11455",
-            "customfield_11326",
-            "customfield_11447",
-            "customfield_11446",
-            "customfield_11325",
-            "customfield_11449",
-            "customfield_11448",
-            "customfield_11310",
-            "customfield_11431",
-            "customfield_11666",
-            "customfield_11402",
-            "customfield_11648",
-            "customfield_11512",
-            "customfield_11515",
-        ]:
-            if row["fields"].get(key_set_default) is None:
-                row["fields"][key_set_default] = []
-        return row
 
 
 class PermissionStream(JiraStream):
