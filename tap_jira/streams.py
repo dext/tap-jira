@@ -387,10 +387,11 @@ class IssueStream(JiraStream):
     name = "issues"
     path = "/search/jql"
     primary_keys = ["id"]
-    replication_key = "id"
+    replication_key = "created"
     replication_method = "INCREMENTAL"
     records_jsonpath = "$[issues][*]"  # Or override `parse_response`.
     instance_name = "issues"
+    next_page_token_jsonpath = "$.nextPageToken"
 
     __content_schema = __content_schema = ArrayType(
         ObjectType(
@@ -2285,8 +2286,8 @@ class IssueStream(JiraStream):
                 Property("customfield_13334", StringType), # Committed Quarter
             ),
         ),
-        Property("created", StringType),
-        Property("updated", StringType),
+        Property("created", DateTimeType),
+        Property("updated", DateTimeType),
     ).to_dict()
 
     def get_url_params(
@@ -2296,21 +2297,23 @@ class IssueStream(JiraStream):
     ) -> dict[str, Any]:
         params: dict = {}
 
-        params["maxResults"] = self.config.get("page_size", {}).get("issues", 10)
+        params["fields"] = ["created", "updated"]
+
+        params["maxResults"] = self.config.get("page_size", {}).get("issues", 100)
 
         params["expand"] = "changelog"
 
         params["jql"] = []  # init a query param
 
         if next_page_token:
-            params["startAt"] = next_page_token
+            params["nextPageToken"] = next_page_token
 
         if self.replication_key:
             params["sort"] = "asc"
             params["order_by"] = self.replication_key
 
         if "start_date" in self.config:
-            start_date = self.config["start_date"]
+            start_date = str(self.get_starting_timestamp(context))[:10]
             params["jql"].append(f"(created>={start_date} or updated>={start_date})")
 
         if "end_date" in self.config:
@@ -2320,11 +2323,44 @@ class IssueStream(JiraStream):
         if params["jql"]:
             jql = " and ".join(params["jql"])
             params["jql"] = jql
+            self.logger.info(50 * "-")
+            self.logger.info(f"PARAMS: {params}")
+            self.logger.info(50 * "-")
 
         else:
             params.pop("jql")  # drop if there's no query
 
         return params
+
+
+    def get_next_page_token(
+        self,
+        response: requests.Response,
+        previous_token: t.Any | None,
+    ) -> t.Any | None:
+        """Return a token for identifying next page or None if no more pages."""
+        resp_json = response.json()
+        return resp_json.get("nextPageToken")
+
+
+    def post_process(self, row: Record, context: Context | None = None) -> Record:  # noqa: ARG002
+        """Post-process the record.
+
+        - Add top-level `created` field.
+        """
+        from datetime import datetime
+        created = row.get("fields", {}).pop("created", None)
+        created = str(created)[:-5]
+        created = datetime.strptime(created, "%Y-%m-%dT%H:%M:%S.%f")
+
+        updated = row.get("fields", {}).pop("updated", None)
+        updated = str(updated)[:-5]
+        updated = datetime.strptime(updated, "%Y-%m-%dT%H:%M:%S.%f")
+
+        row["created"] = created
+        row["updated"] = updated
+
+        return row
 
     def get_child_context(self, record: dict, context: Optional[dict]) -> dict:
         """Return a context dictionary for child streams."""
