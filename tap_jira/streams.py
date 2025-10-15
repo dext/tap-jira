@@ -2297,7 +2297,8 @@ class IssueStream(JiraStream):
     ) -> dict[str, Any]:
         params: dict = {}
 
-        params["fields"] = ["created", "updated"]
+        # params["fields"] = ["created", "updated"]
+        params["fields"] = ["*all"]
 
         params["maxResults"] = self.config.get("page_size", {}).get("issues", 100)
 
